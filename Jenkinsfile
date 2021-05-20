@@ -12,7 +12,7 @@ pipeline {
 		PATH = "$dockerHome/bin:$mavenHome/bin:$PATH"
 	}
 	stages { 
-		stage('Build') {
+		stage('Checkout') {
 			steps{
 				echo "$PATH"
 				sh 'mvn --version'
@@ -20,18 +20,48 @@ pipeline {
 				echo "Build"
 			}
 		
+		}
+		stage('Compile'){
+			steps {
+				sh "mvn clean compile"
+			}
 		}	
 		stage('Test') {
 			steps{
-				echo "Test"
+				sh "mvn test"
 			}
 		
 		}
 		stage('Integration Test') {
 			steps{
-				echo "Integration Test"
+				sh "mvn failsafe:integration-test failsafe:verify"
 			}
 		
+		}
+		stage ('Package'){
+			steps {
+				sh "mvn package -DskipTests"
+			}
+		}
+		stage('Build Docker Image'){
+			steps {
+				//docker build -t ragavikb/currency-exchange-devops:$env.BUILD_TAG
+				script{
+					dockerImage = docker.build("agavikb/currency-exchange-devops:${env.BUILD_TAG}")
+				}
+			}
+		}
+		stage('Push Docker Image'){
+			steps {
+				script{
+					docker.withRegistry('', 'dockerhub'){
+						dockerImage.push();
+						dockerImage.push('latest');
+					}
+					
+				}
+				
+			}
 		}
 	} 
 	post {
