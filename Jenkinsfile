@@ -1,14 +1,15 @@
 pipeline {
-	agent { 
+	agent any
+	/*{ 
 		docker {
 			image 'maven:3.6.3' 
 			args '-u root:root'
 		}
-	}
+	}*/
 	stages { 
 		stage('Build') {
 			steps{
-				echo "mvn --version"
+				echo "$PATH"
 				echo "Build"
 			}
 		
